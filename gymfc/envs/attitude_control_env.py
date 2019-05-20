@@ -4,6 +4,47 @@ from .gazebo_env import GazeboEnv
 import logging
 logger = logging.getLogger("gymfc")
 
+class GoToPositionEnv(GazeboEnv):
+    def __init__(self, **kwargs): 
+        self.observation_history = []
+        self.position_target = [0,0,2]
+        self.memory_size = 1
+        super(GoToPositionEnv, self).__init__()
+
+    def sample_target(self):
+        """ Sample a random angular velocity """
+        print("Target sampled")
+        return  [0,0,2]
+
+    def compute_reward(self):
+        """ Compute the reward """
+        rew=(-np.clip(np.sum(np.abs(self.att_error))/(self.omega_bounds[1]*3), 0, 1)-np.clip(np.sum(np.abs(self.pos_error))/(2*3), 0, 4))/5
+        return rew
+
+    def step(self, action):
+        action = np.clip(action, self.action_space.low, self.action_space.high) 
+        # Step the sim
+        self.obs = self.step_sim(action)
+        self.pos_error = self.position_target - self.obs.position_xyz
+        self.att_error=self.obs.angular_velocity_rpy
+        self.observation_history.append(np.concatenate([self.pos_error, self.att_error,self.obs.velocity_xyz,self.obs.motor_velocity]))
+        state = self.state()
+        done = False
+        reward = self.compute_reward()
+        info = {"sim_time": self.sim_time, "current_pos":self.position_actual, "current_att": self.omega_actual}
+        return state, reward, done, info
+
+    def state(self):
+        """ Get the current state """
+        # The newest will be at the end of the array
+        memory = np.array(self.observation_history[-self.memory_size:])
+        return np.pad(memory.ravel(), 
+                      (( (9+self.motor_count) * self.memory_size) - memory.size, 0), 
+                      'constant', constant_values=(0)) 
+
+    def reset(self):
+        self.observation_history = []
+        return super(GoToPositionEnv, self).reset()
 
 class AttitudeFlightControlEnv(GazeboEnv):
     def __init__(self, **kwargs): 
