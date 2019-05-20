@@ -281,6 +281,8 @@ class GazeboEnv(gym.Env):
 
         # Make these visible
         self.omega_actual = observations.angular_velocity_rpy
+        self.velocity_actual=observations.velocity_xyz
+        self.position_actual=observations.position_xyz
         self.sim_time = observations.timestamp 
         # In the event a packet is dropped we could be out of sync. This has only ever been
         # observed when dozens of simulations are run in parellel. We need the speed 
