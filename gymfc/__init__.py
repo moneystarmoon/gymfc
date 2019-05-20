@@ -5,6 +5,31 @@ MAX_MEMORY = 11
 default_kwargs = {
 }
 
+#Position Task
+kwargs = {
+    "memory_size": 1,
+    "max_sim_time": 1.,
+    }
+kwargs.update(default_kwargs)
+id = 'AttFC_GyroErr-MotorVel_M4_Pos-v0'
+register(
+    id=id,
+    entry_point='gymfc.envs:GoToPositionEnv',
+    kwargs=kwargs)
+
+# Optionally allow different memories
+for i in range(1,MAX_MEMORY):
+    kwargs = {
+        "memory_size": i,
+        "max_sim_time": 1.,
+        }
+    kwargs.update(default_kwargs)
+    id = 'PAttFC_GyroErr{}-MotorVel{}_M4_Pos-v0'.format(i,i)
+    register(
+        id=id,
+        entry_point='gymfc.envs:GoToPositionEnv',
+        kwargs=kwargs)
+
 #Episodic task with ESC supporting sensors for telemetry
 kwargs = {
     "memory_size": 1,
