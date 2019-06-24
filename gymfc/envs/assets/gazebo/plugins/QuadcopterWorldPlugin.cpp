@@ -365,6 +365,8 @@ void QuadcopterWorldPlugin::loop_thread()
 						}
 				}
 
+				ignition::math::Pose3d Origin(0, 0, 0, 0, 0, 0);
+				this->_model->SetWorldPose(Origin);
 				
   				if (this->_world->SimTime().Double() != 0.0){
 					gzerr << "Reset sent but clock did not reset, at " << this->_world->SimTime().Double() << "\n";
@@ -651,7 +653,9 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
 
   // model world pose brings us to model, x-forward, y-left, z-up
   // adding gazeboToNED gets us to the x-forward, y-right, z-down
-  ignition::math::Pose3d worldToModel = gazeboToNED +
+
+/// position control ->
+/*  ignition::math::Pose3d worldToModel = gazeboToNED +
     this->_model->WorldPose();
 
   // get transform from world NED to Model frame
@@ -674,6 +678,16 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   pkt.imuOrientationQuat[1] = NEDToModel.Rot().X();
   pkt.imuOrientationQuat[2] = NEDToModel.Rot().Y();
   pkt.imuOrientationQuat[3] = NEDToModel.Rot().Z();
+  */
+
+  ignition::math::Pose3d worldToModel = this->_model->WorldPose();
+  pkt.positionXYZ[0] = worldToModel.Pos().X();
+  pkt.positionXYZ[1] = worldToModel.Pos().Y();
+  pkt.positionXYZ[2] = worldToModel.Pos().Z();
+  pkt.imuOrientationQuat[0] = worldToModel.Rot().W();
+  pkt.imuOrientationQuat[1] = worldToModel.Rot().X();
+  pkt.imuOrientationQuat[2] = worldToModel.Rot().Y();
+  pkt.imuOrientationQuat[3] = worldToModel.Rot().Z();
 
   // gzdbg << "imu [" << worldToModel.rot.GetAsEuler() << "]\n";
   // gzdbg << "ned [" << gazeboToNED.rot.GetAsEuler() << "]\n";
@@ -682,13 +696,20 @@ void QuadcopterWorldPlugin::SendState(bool motorCommandProcessed) const
   // Get NED velocity in body frame *
   // or...
   // Get model velocity in NED frame
-  ignition::math::Vector3d velGazeboWorldFrame =
+
+/*  ignition::math::Vector3d velGazeboWorldFrame =
     this->_model->GetLink()->WorldLinearVel();
   ignition::math::Vector3d velNEDFrame =
     gazeboToNED.Rot().RotateVectorReverse(velGazeboWorldFrame);
   pkt.velocityXYZ[0] = velNEDFrame.X();
   pkt.velocityXYZ[1] = velNEDFrame.Y();
-  pkt.velocityXYZ[2] = velNEDFrame.Z();
+  pkt.velocityXYZ[2] = velNEDFrame.Z();		*/
+
+  ignition::math::Vector3d velGazeboWorldFrame = this->_model->GetLink()->WorldLinearVel();
+  pkt.velocityXYZ[0] = velGazeboWorldFrame.X();
+  pkt.velocityXYZ[1] = velGazeboWorldFrame.Y();
+  pkt.velocityXYZ[2] = velGazeboWorldFrame.Z();
+/// position control <-
 
   if (motorCommandProcessed){
 	  pkt.status_code = 1;
