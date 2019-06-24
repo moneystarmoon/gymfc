@@ -255,7 +255,7 @@ class GazeboEnv(gym.Env):
         """
         # Convert to motor input to PWM range [0, 1000] to match
         # Betaflight mixer output
-        pwm_motor_values = [ ((m + 1) * 500) for m in action]
+        pwm_motor_values = [ (450*m + 550) for m in action]
 
         # Packets are sent over UDP so they can be dropped, there is no 
         # gaurentee. First we try and send command. If an error occurs in transition 
@@ -424,7 +424,7 @@ class GazeboEnv(gym.Env):
     def reset(self):
         self.last_sim_time = -self.stepsize
         self.loop.run_until_complete(self._step_sim(self.action_space.low, reset=True))
-        self.omega_target = self.sample_target().copy()
+        #self.omega_target = self.sample_target().copy()     #postion control
         assert np.isclose(self.sim_time, 0.0, 1e-6), "sim time after reset is incorrect, {} ".format(self.sim_time)
         return self.state()
 
