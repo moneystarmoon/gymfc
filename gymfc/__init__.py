@@ -8,7 +8,7 @@ default_kwargs = {
 #Position Task
 kwargs = {
     "memory_size": 1,
-    "max_sim_time": 1.,
+    "max_sim_time": 3.,
     }
 kwargs.update(default_kwargs)
 id = 'AttFC_GyroErr-MotorVel_M4_Pos-v0'
@@ -21,7 +21,7 @@ register(
 for i in range(1,MAX_MEMORY):
     kwargs = {
         "memory_size": i,
-        "max_sim_time": 1.,
+        "max_sim_time": 3.,
         }
     kwargs.update(default_kwargs)
     id = 'PAttFC_GyroErr{}-MotorVel{}_M4_Pos-v0'.format(i,i)
